@@ -1,0 +1,32 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: notebook-test
+  namespace: team-1
+spec:
+  workloadSelector:
+    labels:
+      ## TODO: we will likely need to generate a new envoy filter for each notebook resource, as they dont have a common label
+      ##       (unless we make them have a common label, either with Kyvenro, or the Notebook controller itself)
+      ##       OR: we could just apply it to all workloads in the profile namepsaces by removing the selector.
+      statefulset: test2
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        context: SIDECAR_INBOUND
+        proxy:
+          proxyVersion: '^1\.*.*'
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            ## https://www.envoyproxy.io/docs/envoy/v1.23.1/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto.html#extensions-filters-network-http-connection-manager-v3-httpconnectionmanager
+            "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+
+            ## https://www.envoyproxy.io/docs/envoy/v1.23.1/api-v3/config/core/v3/protocol.proto#envoy-v3-api-msg-config-core-v3-http2protocoloptions
+            http2_protocol_options:
+              allow_connect: true
