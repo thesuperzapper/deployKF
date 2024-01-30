@@ -389,6 +389,25 @@ deploykf_dependencies:
           cpu: 100m
           memory: 64Mi
 
+    ## kyverno background scan configs
+    ##
+    backgroundScan:
+
+      ## configs for background-controller background scan
+      ##  - sets `BACKGROUND_SCAN_INTERVAL`
+      ##    https://github.com/kyverno/kyverno/blob/v1.11.4/cmd/background-controller/main.go#L121
+      ##
+      background:
+        interval: 5m
+
+      ## configs for reports-controller background scan
+      ##  - sets `--backgroundScanInterval` and `--backgroundScanWorkers`
+      ##    https://kyverno.io/docs/installation/customization/#container-flags
+      ##
+      reports:
+        workers: 2
+        interval: 1h
+
     ## kyverno policy configs
     ##
     clusterPolicies:

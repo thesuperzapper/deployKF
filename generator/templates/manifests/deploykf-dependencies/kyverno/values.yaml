@@ -76,6 +76,14 @@ kyverno:
       ##       https://github.com/kyverno/kyverno/issues/8390
       enabled: true
 
+    ## Sets the ~reports~ background scan configs
+    ## NOTE: this is NOT for mutate/generate background scans, which are set by
+    ##       the `BACKGROUND_SCAN_INTERVAL` env var in the `backgroundController` section
+    backgroundScan:
+      enabled: true
+      backgroundScanWorkers: {{< .Values.deploykf_dependencies.kyverno.backgroundScan.reports.workers | conv.ToInt >}}
+      backgroundScanInterval: {{< .Values.deploykf_dependencies.kyverno.backgroundScan.reports.interval | quote >}}
+
   ## A pre-delete hook to remove all Kyverno webhooks from the cluster
   webhooksCleanup:
     ## NOTE: we disable this because it is not supported by Argo CD:
@@ -153,6 +161,11 @@ kyverno:
             resources: {{< $extra_resource.resources | toJSON >}}
             verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
           {{<- end >}}
+    extraEnvVars:
+      ## sets the generate/mutate background scan interval (undocumented)
+      ## see: https://github.com/kyverno/kyverno/blob/v1.11.4/cmd/background-controller/main.go#L121
+      - name: BACKGROUND_SCAN_INTERVAL
+        value: {{< .Values.deploykf_dependencies.kyverno.backgroundScan.background.interval | quote >}}
 
   ## Cleanup controller configuration
   cleanupController:
