@@ -161,6 +161,9 @@ kyverno:
             resources: {{< $extra_resource.resources | toJSON >}}
             verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
           {{<- end >}}
+    extraArgs:
+      ## sets the number of worker threads used to process generate policies
+      genWorkers: {{< .Values.deploykf_dependencies.kyverno.backgroundController.generateWorkers | quote >}}
     extraEnvVars:
       ## sets the generate/mutate background scan interval (undocumented)
       ## see: https://github.com/kyverno/kyverno/blob/v1.11.4/cmd/background-controller/main.go#L121

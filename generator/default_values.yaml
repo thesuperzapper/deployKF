@@ -367,6 +367,10 @@ deploykf_dependencies:
           cpu: 100m
           memory: 128Mi
 
+      ## the number of worker threads used for processing generate policies
+      ##
+      generateWorkers: 10
+
     ## kyverno cleanup controller configs
     ##
     cleanupController:
