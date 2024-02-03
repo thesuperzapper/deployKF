@@ -155,19 +155,35 @@ spec:
             annotations:
               argocd.argoproj.io/compare-options: IgnoreExtraneous
               argocd.argoproj.io/sync-options: Prune=false
-
-    ## restart deployments using the ~cloned~ secret when the ~source~ secret is updated
-    ## NOTE: kyverno ignores its own updates, so we cant trigger from the ~cloned~ secret
+---
+## TODO: clone and mutate-existing rules must be in separate policies due to a bug in kyverno 1.11.4
+##       recombine these policies once we update: https://github.com/kyverno/kyverno/issues/9571
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  ## the max name length is 63, so to avoid collisions we include part of the SHA256 of the profile name
+  {{- $this_policy_name = (printf "trigger-profile-bucket-secret-%s-%s" ($profile_name | sha256sum | trunc 8) $profile_name) | trunc 63 | trimSuffix "-" }}
+  name: {{ $this_policy_name | quote }}
+  labels:
+    helm.sh/chart: {{ include "deploykf-profiles-generator.labels.chart" $ }}
+    app.kubernetes.io/name: {{ include "deploykf-profiles-generator.labels.name" $ }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+spec:
+  rules:
+    ## restart deployments using the ~cloned~ secret when the ~cloned~ secret is updated
+    ## NOTE: by default, kyverno ignores its own updates, so we must disable `skipBackgroundRequests`
     - name: trigger-deployment-restarts
+      skipBackgroundRequests: false
       match:
         any:
           - resources:
               kinds:
                 - Secret
               names:
-                - {{ $source_secret__name | quote }}
+                - {{ $target_secret__name | quote }}
               namespaces:
-                - {{ $source_secret__namespace | quote }}
+                - {{ $target_secret__namespace | quote }}
               operations:
                 - CREATE
                 - UPDATE
