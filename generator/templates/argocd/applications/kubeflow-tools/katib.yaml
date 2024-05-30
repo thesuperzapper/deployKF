@@ -57,3 +57,10 @@ spec:
       kind: Deployment
       jsonPointers:
         - /spec/template/metadata/annotations/deploykf.org~1restart-trigger
+
+    ## TODO: this is a temporary workaround so that users can update their katib config
+    - group: ""
+      kind: ConfigMap
+      name: "katib-config"
+      jsonPointers:
+        - /data
